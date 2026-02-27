@@ -1,0 +1,95 @@
+.app-root {
+  min-width: 320px;
+  min-height: 100vh;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  padding: 3rem 1.5rem;
+  box-sizing: border-box;
+}
+
+.card {
+  width: min(640px, 100%);
+  background: #ffffff;
+  border-radius: 20px;
+  padding: 3rem 2.75rem;
+  box-shadow:
+    0 24px 60px rgba(15, 23, 42, 0.22),
+    0 0 0 1px rgba(148, 163, 184, 0.35);
+  text-align: center;
+}
+
+.question-panel {
+  animation: question-slide-in 220ms ease-out;
+}
+
+@keyframes question-slide-in {
+  from {
+    opacity: 0;
+    transform: translateX(16px);
+  }
+  to {
+    opacity: 1;
+    transform: translateX(0);
+  }
+}
+
+.card-subtitle {
+  margin-top: 0.75rem;
+  margin-bottom: 2rem;
+  color: #4b5563;
+  font-size: 0.95rem;
+}
+
+.primary-button {
+  margin-top: 1.5rem;
+  padding-inline: 2.5rem;
+}
+
+.progress {
+  font-size: 0.85rem;
+  font-weight: 500;
+  text-transform: uppercase;
+  letter-spacing: 0.08em;
+  color: #6b7280;
+  margin-bottom: 1rem;
+}
+
+.question-text {
+  margin-top: 0;
+  margin-bottom: 0.75rem;
+}
+
+.scale-label {
+  margin-top: 0;
+  margin-bottom: 1.25rem;
+  color: #6b7280;
+  font-size: 0.9rem;
+}
+
+.scale-buttons {
+  display: flex;
+  justify-content: center;
+  gap: 0.9rem;
+}
+
+.scale-button {
+  flex: 1;
+  max-width: 64px;
+}
+
+.scale-button--selected {
+  border-color: #4f46e5;
+  background-color: #4f46e5;
+  color: #ffffff;
+}
+
+.answers-output {
+  text-align: left;
+  background: #f3f4f6;
+  border-radius: 12px;
+  padding: 1rem 1.25rem;
+  font-size: 0.9rem;
+  overflow-x: auto;
+  margin-bottom: 1.5rem;
+}

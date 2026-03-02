@@ -1,0 +1,6 @@
+[
+  { "trait": "small", "importance": 5 },
+  { "trait": "sheds_regularly", "importance": 2 },
+  { "trait": "good_with_children", "importance": 4 },
+  { "trait": "barks_rarely", "importance": 3 }
+]

@@ -34,81 +34,127 @@ const QUESTIONS = [
     ],
   },
   {
-    id: 'activity',
-    prompt: 'How active do you want your dog to be?',
+    id: 'shedding',
+    prompt: 'What is your preferred shedding characteristic in a dog?',
     options: [
-      { label: 'Low energy', value: 'low' },
-      { label: 'Moderate', value: 'moderate' },
-      { label: 'High energy', value: 'high' },
-      { label: 'Athlete / adventure buddy', value: 'very_high' },
-    ],
-  },
-  {
-    id: 'size',
-    prompt: 'What size dog do you prefer?',
-    options: [
-      { label: 'Small', value: 'small' },
-      { label: 'Medium', value: 'medium' },
-      { label: 'Large', value: 'large' },
-      { label: 'No preference', value: 'any' },
-    ],
-  },
-  {
-    id: 'time',
-    prompt: 'How much time can you dedicate daily to your dog?',
-    options: [
-      { label: 'Less than 1 hour', value: 'lt_1h' },
-      { label: '1–2 hours', value: '1_2h' },
-      { label: '2–3 hours', value: '2_3h' },
-      { label: '3+ hours', value: '3ph' },
+      { label: 'Sheds frequently', value: 'Sheds_Frequent' },
+      { label: 'Sheds infrequently', value: 'Sheds_Infrequent' },
+      { label: 'Sheds occasionally', value: 'Sheds_Occasional' },
+      { label: 'Sheds regularly', value: 'Sheds_Regularly' },
+      { label: 'Sheds seasonal', value: 'Sheds_Seasonal' },
     ],
   },
   {
     id: 'grooming',
-    prompt: 'How much grooming are you willing to do?',
+    prompt: 'What is your preferred grooming requirement in a dog?',
     options: [
-      { label: 'Minimal', value: 'minimal' },
-      { label: 'Some brushing', value: 'some' },
-      { label: 'Regular grooming', value: 'regular' },
-      { label: 'Doesn’t matter', value: 'any' },
+      { label: '2–3 times a week brushing', value: 'Requires_2_3_Times_a_Week_Brushing' },
+      { label: 'Daily brushing', value: 'Requires_Daily_Brushing' },
+      { label: 'Occasional bath & brush', value: 'Requires_Occasional_Bath_Brush' },
+      { label: 'Specialty professional', value: 'Requires_Specialty_Professional' },
+      { label: 'Weekly brushing', value: 'Requires_Weekly_Brushing' },
     ],
   },
   {
-    id: 'shedding',
-    prompt: 'How important is low shedding?',
+    id: 'energy',
+    prompt: 'What is your preferred energy level in a dog?',
     options: [
-      { label: 'Very important', value: 'very_important' },
-      { label: 'Somewhat important', value: 'somewhat' },
-      { label: 'Not important', value: 'not_important' },
+      { label: 'Calm', value: 'Calm' },
+      { label: 'Couch potato', value: 'Couch_Potato' },
+      { label: 'Energetic', value: 'Energetic' },
+      { label: 'Needs lots of activity', value: 'Needs_Lots_of_Activity' },
+      { label: 'Regular exercise', value: 'Regular_Exercise' },
     ],
   },
   {
-    id: 'kids',
-    prompt: 'Are there children in your household?',
+    id: 'trainability',
+    prompt: 'What is your preferred trainability in a dog?',
     options: [
-      { label: 'Yes (young kids)', value: 'young' },
-      { label: 'Yes (older kids)', value: 'older' },
-      { label: 'No', value: 'none' },
+      { label: 'Agreeable', value: 'Agreeable' },
+      { label: 'Eager to please', value: 'Eager_to_Please' },
+      { label: 'Easy training', value: 'Easy_Training' },
+      { label: 'Independent', value: 'Independent' },
+      { label: 'May be stubborn', value: 'May_be_Stubborn' },
     ],
   },
   {
-    id: 'pets',
-    prompt: 'Do you have other pets?',
+    id: 'demeanor',
+    prompt: 'What is your preferred demeanor in a dog?',
     options: [
-      { label: 'No other pets', value: 'none' },
-      { label: 'Yes (dogs)', value: 'dogs' },
-      { label: 'Yes (cats)', value: 'cats' },
-      { label: 'Yes (other)', value: 'other' },
+      { label: 'Alert & responsive', value: 'Alert_Responsive' },
+      { label: 'Aloof / wary', value: 'Aloof_Wary' },
+      { label: 'Friendly', value: 'Friendly' },
+      { label: 'Outgoing', value: 'Outgoing' },
+      { label: 'Reserved with strangers', value: 'Reserved_with_Strangers' },
     ],
   },
   {
-    id: 'training',
-    prompt: 'How much training are you willing to do?',
+    id: 'coat_type',
+    prompt: 'What is your preferred coat type in a dog?',
     options: [
-      { label: 'Basic training only', value: 'basic' },
-      { label: 'Some training', value: 'some' },
-      { label: 'Lots of training', value: 'lots' },
-      { label: 'I enjoy advanced training', value: 'advanced' },
+      { label: 'Corded coat', value: 'Corded_Coat' },
+      { label: 'Curly coat', value: 'Curly_Coat' },
+      { label: 'Double coat', value: 'Double_Coat' },
+      { label: 'Hairless coat', value: 'Hairless_Coat' },
+      { label: 'Rough coat', value: 'Rough_Coat' },
+      { label: 'Silky coat', value: 'Silky_Coat' },
+      { label: 'Smooth coat', value: 'Smooth_Coat' },
+      { label: 'Wavy coat', value: 'Wavy_Coat' },
+      { label: 'Wiry coat', value: 'Wiry_Coat' },
+    ],
+  },
+  {
+    id: 'coat_length',
+    prompt: 'What is your preferred coat length in a dog?',
+    options: [
+      { label: 'Long coat', value: 'Long_Coat' },
+      { label: 'Medium coat', value: 'Medium_Coat' },
+      { label: 'Short coat', value: 'Short_Coat' },
+    ],
+  },
+  {
+    id: 'size',
+    prompt: 'What is your preferred size of dog?',
+    options: [
+      { label: 'Small', value: 'Small' },
+      { label: 'Medium', value: 'Medium' },
+      { label: 'Large', value: 'Large' },
+    ],
+  },
+  {
+    id: 'children',
+    prompt: 'What is your preferred compatibility with children in a dog?',
+    options: [
+      { label: 'Bad with children', value: 'Bad_With_Children' },
+      { label: 'Ok with children', value: 'Ok_With_Children' },
+      { label: 'Good with children', value: 'Good_With_Children' },
+    ],
+  },
+  {
+    id: 'other_dogs',
+    prompt: 'What is your preferred compatibility with other dogs?',
+    options: [
+      { label: 'Bad with other dogs', value: 'Bad_With_Other_Dogs' },
+      { label: 'Ok with other dogs', value: 'Ok_With_Other_Dogs' },
+      { label: 'Good with other dogs', value: 'Good_With_Other_Dogs' },
+    ],
+  },
+  {
+    id: 'protectivity',
+    prompt: 'What is your preferred protectivity level in a dog?',
+    options: [
+      { label: 'Not protective', value: 'Not_Protective' },
+      { label: 'Somewhat protective', value: 'Somewhat_Protective' },
+      { label: 'Very protective', value: 'Very_Protective' },
+    ],
+  },
+  {
+    id: 'barking',
+    prompt: 'What is your preferred barking level in a dog?',
+    options: [
+      { label: 'Barks rarely', value: 'Barks_Rarely' },
+      { label: 'Barks occasionally', value: 'Barks_Occasionally' },
+      { label: 'Barks often', value: 'Barks_Often' },
     ],
   },
 ]
@@ -407,14 +453,21 @@ function App() {
 
                   <pre className="quiz-results-output">
 {JSON.stringify(
-  answers.map((a, idx) => ({
-    questionId: QUESTIONS[idx].id,
-    question: QUESTIONS[idx].prompt,
-    optionValue: a?.option?.value ?? null,
-    optionLabel: a?.option?.label ?? null,
-    importance: a?.importance?.value ?? null,
-    importanceWeight: a?.importance?.weight ?? null,
-  })),
+  answers
+    .map((a, idx) => {
+      const q = QUESTIONS[idx]
+      const trait = a?.option?.value
+      const importance = a?.importance?.value
+      if (!trait || (!q?.skipImportance && importance == null)) return null
+      const normalizedTrait = String(trait)
+        .toLowerCase()
+        .replace(/[^a-z0-9]+/g, '_')
+        .replace(/^_|_$/g, '')
+      return q?.skipImportance
+        ? { trait: normalizedTrait }
+        : { trait: normalizedTrait, importance }
+    })
+    .filter(Boolean),
   null,
   2
 )}

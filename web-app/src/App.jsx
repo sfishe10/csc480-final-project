@@ -12,22 +12,25 @@ const IMPORTANCE_LEVELS = [
 
 const QUESTIONS = [
   {
-    id: 'experience',
-    prompt: 'How experienced are you with owning dogs?',
+    id: 'living_situation',
+    prompt: 'What best describes your living situation?',
+    skipImportance: true,
     options: [
-      { label: 'First-time owner', value: 'first_time' },
-      { label: 'Some experience', value: 'some' },
-      { label: 'Very experienced', value: 'experienced' },
+      { label: 'Apartment', value: 'apartment' },
+      { label: 'House (small or no backyard)', value: 'house_small_yard' },
+      { label: 'House (medium or large backyard)', value: 'house_medium_big_yard' },
+      { label: 'Ranch / Large Property', value: 'ranch_property' },
     ],
   },
   {
-    id: 'home',
-    prompt: 'What best describes your living space?',
+    id: 'free_time',
+    prompt: 'How much free time do you have?',
+    skipImportance: true,
     options: [
-      { label: 'Apartment / small space', value: 'apartment' },
-      { label: 'House with a small yard', value: 'small_yard' },
-      { label: 'House with a big yard', value: 'big_yard' },
-      { label: 'Rural / lots of space', value: 'rural' },
+      { label: 'Very little (0 - 10 hours / week)', value: 'very_little' },
+      { label: 'Some (10 - 20 hours / week)', value: 'some' },
+      { label: 'A decent amount (20 – 30 hours / week)', value: 'decent' },
+      { label: 'A lot (30+ hours)', value: 'a_lot' },
     ],
   },
   {
@@ -168,7 +171,10 @@ function App() {
 
   const handleNext = () => {
     const current = answers[currentIndex]
-    const isReady = Boolean(current?.option && current?.importance)
+    const question = QUESTIONS[currentIndex]
+    const isReady = question?.skipImportance
+      ? Boolean(current?.option)
+      : Boolean(current?.option && current?.importance)
     if (!isReady) return
 
     const isLastQuestion = currentIndex === QUESTIONS.length - 1
@@ -284,7 +290,9 @@ function App() {
                     const selected = answers[currentIndex]
                     const selectedOption = selected?.option ?? null
                     const selectedImportance = selected?.importance ?? null
-                    const canGoNext = Boolean(selectedOption && selectedImportance)
+                    const canGoNext = currentQuestion.skipImportance
+                      ? Boolean(selectedOption)
+                      : Boolean(selectedOption && selectedImportance)
                     return (
                       <>
                   <div className="quiz-card-top">
@@ -331,6 +339,7 @@ function App() {
                     ))}
                   </div>
 
+                  {!currentQuestion.skipImportance && (
                   <div className="quiz-importance">
                     <div className="quiz-importance-label">
                       How important is this to you?
@@ -362,6 +371,7 @@ function App() {
                       </span>
                     </div>
                   </div>
+                  )}
 
                   <div className="quiz-footer">
                     <button

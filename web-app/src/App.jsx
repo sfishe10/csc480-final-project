@@ -291,7 +291,7 @@ function App() {
 
               <h2 className="landing-headline">Discover Your Perfect Dog.</h2>
               <p className="landing-subheadline">
-                Answer 10 quick questions. Get your ideal breed match — powered by
+                Answer 8 quick questions. Get your ideal breed match — powered by
                 AI.
               </p>
 
@@ -305,7 +305,7 @@ function App() {
                 <div className="landing-dot" aria-hidden="true">
                   ·
                 </div>
-                <div className="landing-chip">10 Questions</div>
+                <div className="landing-chip">8 Questions</div>
                 <div className="landing-dot" aria-hidden="true">
                   ·
                 </div>

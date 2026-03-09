@@ -1,0 +1,5 @@
+pandas>=2.0.0
+pyDatalog>=0.17.0
+Flask>=3.0.0
+flask-cors>=4.0.0
+icrawler>=0.6.6

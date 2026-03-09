@@ -68,6 +68,30 @@ def load_preferences_from_file(json_path: str | Path) -> list[Preference]:
     return preferences
 
 
+def load_preferences_from_list(data: list | dict) -> list[Preference]:
+    """Load preferences from a list of dicts or a single dict with 'preferences' key."""
+    if isinstance(data, dict):
+        data = data.get("preferences", [])
+    if not isinstance(data, list):
+        raise ValueError("Data must be a list or {'preferences': [...]} object.")
+    preferences: list[Preference] = []
+    for idx, item in enumerate(data):
+        if not isinstance(item, dict):
+            raise ValueError(f"Preference at index {idx} must be an object.")
+        trait = item.get("trait") or item.get("category") or item.get("name")
+        if not trait or not isinstance(trait, str):
+            raise ValueError(f"Preference at index {idx} is missing a string 'trait'.")
+        importance_raw = item.get("importance", 3)
+        try:
+            importance = int(importance_raw)
+        except (TypeError, ValueError) as exc:
+            raise ValueError(f"Preference '{trait}' has invalid importance '{importance_raw}'.") from exc
+        if not (1 <= importance <= 5):
+            raise ValueError(f"Preference '{trait}' importance must be in [1, 5].")
+        preferences.append(Preference(trait=trait, importance=importance))
+    return preferences
+
+
 def _known_trait_names_from_rules() -> set[str]:
     names: set[str] = set()
     list_attrs = [
@@ -158,6 +182,7 @@ def _score_candidates(
                 rules.query_to_originals(pref.predicate(b_var))
             )
 
+    breed_descriptions = getattr(rules, "breed_descriptions", {})
     scored: list[dict[str, Any]] = []
     for breed in candidates:
         score = 0
@@ -173,6 +198,7 @@ def _score_candidates(
                 "score": score,
                 "matched_traits": matched_traits,
                 "matched_count": len(matched_traits),
+                "description": breed_descriptions.get(breed, ""),
             }
         )
 
@@ -213,11 +239,21 @@ def find_breed_matches(
 def main() -> None:
     parser = argparse.ArgumentParser()
     parser.add_argument("preferences_file", help="Path to a JSON file with preferences.")
+    parser.add_argument("--json-full", action="store_true", help="Print full result JSON (for API use).")
+    parser.add_argument("--min-matches", type=int, default=5, help="Minimum number of breeds to return (default 5).")
     args = parser.parse_args()
     preferences = load_preferences_from_file(args.preferences_file)
-    result = find_breed_matches(preferences, 5)
+    result = find_breed_matches(preferences, args.min_matches)
 
-    print(json.dumps(result["ranked"][:5], indent=2))
+    if args.json_full:
+        print(json.dumps({
+            "breeds": result["breeds"],
+            "ranked": result["ranked"],
+            "used_traits": result["used_traits"],
+            "dropped_traits": result.get("dropped_traits", []),
+        }))
+    else:
+        print(json.dumps(result["ranked"][:5], indent=2))
 
 
 if __name__ == "__main__":

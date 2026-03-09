@@ -2,6 +2,24 @@ import { useState } from 'react'
 import './App.css'
 import dogImage from './assets/landing-dog.png'
 
+const API_BASE = import.meta.env.VITE_API_URL || 'http://127.0.0.1:5000'
+
+// Map quiz option values to matcher ontology trait names (normalized form)
+const TRAIT_VALUE_MAP = {
+  living_situation: {
+    apartment: 'good_for_apartment',
+    house_small_yard: 'good_for_small_homes',
+    house_medium_big_yard: 'good_for_small_homes',
+    ranch_property: 'thrives_on_ranch',
+  },
+  free_time: {
+    very_little: 'good_for_low_free_time',
+    some: 'calm_and_obedient',
+    decent: 'calm_and_obedient',
+    a_lot: 'high_time_commitment_dog',
+  },
+}
+
 const IMPORTANCE_LEVELS = [
   { label: '1', value: 1, weight: 1 },
   { label: '2', value: 2, weight: 2 },
@@ -45,39 +63,6 @@ const QUESTIONS = [
     ],
   },
   {
-    id: 'grooming',
-    prompt: 'What is your preferred grooming requirement in a dog?',
-    options: [
-      { label: '2–3 times a week brushing', value: 'Requires_2_3_Times_a_Week_Brushing' },
-      { label: 'Daily brushing', value: 'Requires_Daily_Brushing' },
-      { label: 'Occasional bath & brush', value: 'Requires_Occasional_Bath_Brush' },
-      { label: 'Specialty professional', value: 'Requires_Specialty_Professional' },
-      { label: 'Weekly brushing', value: 'Requires_Weekly_Brushing' },
-    ],
-  },
-  {
-    id: 'energy',
-    prompt: 'What is your preferred energy level in a dog?',
-    options: [
-      { label: 'Calm', value: 'Calm' },
-      { label: 'Couch potato', value: 'Couch_Potato' },
-      { label: 'Energetic', value: 'Energetic' },
-      { label: 'Needs lots of activity', value: 'Needs_Lots_of_Activity' },
-      { label: 'Regular exercise', value: 'Regular_Exercise' },
-    ],
-  },
-  {
-    id: 'trainability',
-    prompt: 'What is your preferred trainability in a dog?',
-    options: [
-      { label: 'Agreeable', value: 'Agreeable' },
-      { label: 'Eager to please', value: 'Eager_to_Please' },
-      { label: 'Easy training', value: 'Easy_Training' },
-      { label: 'Independent', value: 'Independent' },
-      { label: 'May be stubborn', value: 'May_be_Stubborn' },
-    ],
-  },
-  {
     id: 'demeanor',
     prompt: 'What is your preferred demeanor in a dog?',
     options: [
@@ -110,15 +95,6 @@ const QUESTIONS = [
       { label: 'Long coat', value: 'Long_Coat' },
       { label: 'Medium coat', value: 'Medium_Coat' },
       { label: 'Short coat', value: 'Short_Coat' },
-    ],
-  },
-  {
-    id: 'size',
-    prompt: 'What is your preferred size of dog?',
-    options: [
-      { label: 'Small', value: 'Small' },
-      { label: 'Medium', value: 'Medium' },
-      { label: 'Large', value: 'Large' },
     ],
   },
   {
@@ -185,11 +161,32 @@ function ArrowRightIcon(props) {
   )
 }
 
+function buildPreferencesFromAnswers(answers) {
+  return answers
+    .map((a, idx) => {
+      const q = QUESTIONS[idx]
+      let trait = a?.option?.value
+      const importance = a?.importance?.value
+      if (!trait || (!q?.skipImportance && importance == null)) return null
+      const mapped = TRAIT_VALUE_MAP[q?.id]?.[trait]
+      if (mapped) trait = mapped
+      else trait = String(trait).toLowerCase().replace(/[^a-z0-9]+/g, '_').replace(/^_|_$/g, '')
+      return q?.skipImportance
+        ? { trait, importance: 3 }
+        : { trait, importance }
+    })
+    .filter(Boolean)
+}
+
 function App() {
   const [started, setStarted] = useState(false)
   const [currentIndex, setCurrentIndex] = useState(0)
   const [answers, setAnswers] = useState(Array(QUESTIONS.length).fill(null))
   const [finished, setFinished] = useState(false)
+  const [matchResult, setMatchResult] = useState(null)
+  const [matchLoading, setMatchLoading] = useState(false)
+  const [matchError, setMatchError] = useState(null)
+  const [expandedBreed, setExpandedBreed] = useState(null)
 
   const handleStart = () => {
     setStarted(true)
@@ -227,6 +224,29 @@ function App() {
 
     if (isLastQuestion) {
       setFinished(true)
+      const preferences = buildPreferencesFromAnswers(answers)
+      if (preferences.length > 0) {
+        setMatchLoading(true)
+        setMatchError(null)
+        setMatchResult(null)
+        fetch(`${API_BASE}/api/match`, {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({ preferences }),
+        })
+          .then((res) => {
+            if (!res.ok) return res.json().then((d) => { throw new Error(d.error || res.statusText) })
+            return res.json()
+          })
+          .then((data) => {
+            setMatchResult(data)
+            setMatchLoading(false)
+          })
+          .catch((err) => {
+            setMatchError(err.message || 'Match request failed')
+            setMatchLoading(false)
+          })
+      }
     } else {
       setCurrentIndex((prev) => prev + 1)
     }
@@ -241,6 +261,14 @@ function App() {
     setFinished(false)
     setCurrentIndex(0)
     setAnswers(Array(QUESTIONS.length).fill(null))
+    setMatchResult(null)
+    setMatchError(null)
+    setMatchLoading(false)
+    setExpandedBreed(null)
+  }
+
+  const toggleBreedExpanded = (breed) => {
+    setExpandedBreed((prev) => (prev === breed ? null : breed))
   }
 
   return (
@@ -448,30 +476,94 @@ function App() {
                 <section className="quiz-card quiz-card--results">
                   <h2 className="quiz-results-title">All done!</h2>
                   <p className="quiz-results-subtitle">
-                    Here are your answers (in order of the questions).
+                    {matchLoading
+                      ? 'Finding your best breed matches…'
+                      : matchError
+                        ? 'Something went wrong when matching.'
+                        : matchResult
+                          ? 'Here are your top breed matches.'
+                          : 'Here are your answers.'}
                   </p>
 
-                  <pre className="quiz-results-output">
-{JSON.stringify(
-  answers
-    .map((a, idx) => {
-      const q = QUESTIONS[idx]
-      const trait = a?.option?.value
-      const importance = a?.importance?.value
-      if (!trait || (!q?.skipImportance && importance == null)) return null
-      const normalizedTrait = String(trait)
-        .toLowerCase()
-        .replace(/[^a-z0-9]+/g, '_')
-        .replace(/^_|_$/g, '')
-      return q?.skipImportance
-        ? { trait: normalizedTrait }
-        : { trait: normalizedTrait, importance }
-    })
-    .filter(Boolean),
-  null,
-  2
-)}
-                  </pre>
+                  {matchLoading && (
+                    <div className="quiz-results-loading" aria-live="polite">
+                      Loading…
+                    </div>
+                  )}
+
+                  {matchError && (
+                    <p className="quiz-results-error" role="alert">
+                      {matchError}
+                    </p>
+                  )}
+
+                  {matchResult?.ranked?.length > 0 && (
+                    <ol className="quiz-results-list">
+                      {matchResult.ranked.slice(0, 5).map((item, i) => {
+                        const isExpanded = expandedBreed === item.breed
+                        const hasDescription = item.description?.trim()
+                        const headerContent = (
+                          <>
+                            <span className="quiz-results-rank">{i + 1}.</span>
+                            <span className="quiz-results-breed">{item.breed}</span>
+                            <span className="quiz-results-score">
+                              Score: {item.score}
+                              {item.matched_traits?.length > 0 && (
+                                <span className="quiz-results-traits">
+                                  {' '}({item.matched_traits.join(', ')})
+                                </span>
+                              )}
+                            </span>
+                            {hasDescription && (
+                              <span className="quiz-results-chevron" aria-hidden>
+                                {isExpanded ? '▲' : '▼'}
+                              </span>
+                            )}
+                          </>
+                        )
+                        return (
+                          <li key={item.breed} className="quiz-results-item">
+                            {hasDescription ? (
+                              <button
+                                type="button"
+                                className="quiz-results-item-header"
+                                onClick={() => toggleBreedExpanded(item.breed)}
+                                aria-expanded={isExpanded}
+                                aria-controls={`breed-desc-${i}`}
+                                id={`breed-header-${i}`}
+                              >
+                                {headerContent}
+                              </button>
+                            ) : (
+                              <div className="quiz-results-item-header quiz-results-item-header--static">
+                                {headerContent}
+                              </div>
+                            )}
+                            {hasDescription && isExpanded && (
+                              <div
+                                id={`breed-desc-${i}`}
+                                className="quiz-results-description"
+                                role="region"
+                                aria-labelledby={`breed-header-${i}`}
+                              >
+                                <img
+                                  src={`/one_per_breed/${encodeURIComponent(item.breed)}/000001.jpg`}
+                                  alt={`${item.breed} dog`}
+                                  className="quiz-results-breed-image"
+                                  onError={(e) => { e.target.style.display = 'none' }}
+                                />
+                                {item.description}
+                              </div>
+                            )}
+                          </li>
+                        )
+                      })}
+                    </ol>
+                  )}
+
+                  {matchResult && !matchLoading && !matchError && !matchResult.ranked?.length && (
+                    <p className="quiz-results-empty">No breeds matched your preferences.</p>
+                  )}
 
                   <button className="landing-cta" onClick={handleRestart}>
                     Start Over

@@ -489,7 +489,7 @@ function App() {
                             <span className="quiz-results-rank">{i + 1}.</span>
                             <span className="quiz-results-breed">{item.breed}</span>
                             <span className="quiz-results-score">
-                              Score: {item.score}
+                              Fit: {Math.round((item.fit ?? 0) * 100)}%
                               {item.matched_traits?.length > 0 && (
                                 <span className="quiz-results-traits">
                                   {' '}({item.matched_traits.join(', ')})
@@ -521,12 +521,16 @@ function App() {
                                 {headerContent}
                               </div>
                             )}
-                            {hasDescription && isExpanded && (
+                            {hasDescription && (
                               <div
                                 id={`breed-desc-${i}`}
-                                className="quiz-results-description"
+                                className={
+                                  `quiz-results-description` +
+                                  (isExpanded ? ' quiz-results-description--expanded' : '')
+                                }
                                 role="region"
                                 aria-labelledby={`breed-header-${i}`}
+                                aria-hidden={!isExpanded}
                               >
                                 <img
                                   src={`/one_per_breed/${encodeURIComponent(item.breed)}/000001.jpg`}

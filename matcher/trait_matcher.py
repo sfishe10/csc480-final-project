@@ -10,12 +10,14 @@ from typing import Any
 import db_to_ontology as rules
 
 
+# Represents a raw user preference before it's mapped to the database
 @dataclass(frozen=True)
 class Preference:
     trait: str
     importance: int
 
 
+# Represents a preference successfully linked to a database query function
 @dataclass(frozen=True)
 class ResolvedPreference:
     trait: str
@@ -25,10 +27,12 @@ class ResolvedPreference:
 
 
 def _normalize_trait_name(name: str) -> str:
+    # Converts text like "Good with Kids" to "good_with_kids" for easy matching
     return re.sub(r"[^a-z0-9]+", "_", name.strip().lower()).strip("_")
 
 
 def _parse_json_or_python_object(text: str) -> Any:
+    # Safely parses the input file, falling back to python literals if JSON fails
     try:
         return json.loads(text)
     except json.JSONDecodeError:
@@ -36,6 +40,7 @@ def _parse_json_or_python_object(text: str) -> Any:
 
 
 def load_preferences_from_file(json_path: str | Path) -> list[Preference]:
+    # Reads the file and passes it to the data validation logic
     raw_text = Path(json_path).read_text(encoding="utf-8")
     parsed = _parse_json_or_python_object(raw_text)
 
@@ -60,6 +65,7 @@ def load_preferences_from_file(json_path: str | Path) -> list[Preference]:
         except (TypeError, ValueError) as exc:
             raise ValueError(f"Preference '{trait}' has invalid importance '{importance_raw}'.") from exc
 
+        # Ensures importance is strictly weighted 1 through 5
         if not (1 <= importance <= 5):
             raise ValueError(f"Preference '{trait}' importance must be in [1, 5].")
 
@@ -69,7 +75,7 @@ def load_preferences_from_file(json_path: str | Path) -> list[Preference]:
 
 
 def load_preferences_from_list(data: list | dict) -> list[Preference]:
-    """Load preferences from a list of dicts or a single dict with 'preferences' key."""
+    # Load preferences from a list of dicts or a single dict with 'preferences' key
     if isinstance(data, dict):
         data = data.get("preferences", [])
     if not isinstance(data, list):
@@ -93,6 +99,7 @@ def load_preferences_from_list(data: list | dict) -> list[Preference]:
 
 
 def _known_trait_names_from_rules() -> set[str]:
+    # Dynamically scans the 'db_to_ontology' rules file to find all valid dog traits
     names: set[str] = set()
     list_attrs = [
         "all_shedding_terms",
@@ -127,6 +134,7 @@ def _known_trait_names_from_rules() -> set[str]:
 
 
 def _build_trait_lookup() -> dict[str, str]:
+    # Creates a dictionary mapping normalized trait names to actual database function names
     lookup: dict[str, str] = {}
     for name in _known_trait_names_from_rules():
         key = _normalize_trait_name(name)
@@ -136,6 +144,7 @@ def _build_trait_lookup() -> dict[str, str]:
 
 
 def _resolve_preference(pref: Preference, trait_lookup: dict[str, str]) -> ResolvedPreference:
+    # Connects the user's string preference to the actual callable database function
     normalized = _normalize_trait_name(pref.trait)
     predicate_name = trait_lookup.get(normalized)
     if predicate_name is None:
@@ -158,6 +167,7 @@ def _resolve_preference(pref: Preference, trait_lookup: dict[str, str]) -> Resol
 
 
 def _query_breeds(active_preferences: list[ResolvedPreference]) -> list[str]:
+    # Combines all active traits with a logical AND to find breeds that meet ALL requirements
     b_var = rules.B
 
     if not active_preferences:
@@ -173,9 +183,11 @@ def _query_breeds(active_preferences: list[ResolvedPreference]) -> list[str]:
 def _score_candidates(
     candidates: list[str], resolved_preferences: list[ResolvedPreference]
 ) -> list[dict[str, Any]]:
+    # Assigns a compatibility score to each breed based on the importance weights of the traits it matches
     b_var = rules.B
     trait_to_matching_breeds: dict[str, set[str]] = {}
 
+    # Pre-calculate which breeds match which traits
     for pref in resolved_preferences:
         if pref.predicate_name not in trait_to_matching_breeds:
             trait_to_matching_breeds[pref.predicate_name] = set(
@@ -184,6 +196,8 @@ def _score_candidates(
 
     breed_descriptions = getattr(rules, "breed_descriptions", {})
     scored: list[dict[str, Any]] = []
+    
+    # Calculate fit - (Points Earned) / (Total Possible Points)
     for breed in candidates:
         score = 0
         total = 0
@@ -194,7 +208,7 @@ def _score_candidates(
                 score += pref.importance
                 matched_traits.append(pref.trait)
 
-        fit = score/total
+        fit = score/total if total > 0 else 0
         scored.append(
             {
                 "breed": breed,
@@ -206,6 +220,7 @@ def _score_candidates(
             }
         )
 
+    # Sort results - Highest score first, then most traits matched, then alphabetical
     scored.sort(key=lambda item: (-item["score"], -item["matched_count"], item["breed"]))
     return scored
 
@@ -213,6 +228,7 @@ def _score_candidates(
 def find_breed_matches(
     preferences: list[Preference], min_matches: int
 ) -> dict[str, Any]:
+    # core engine logic - tries to find matches, relaxing constraints if necessary
     if min_matches < 1:
         raise ValueError("min_matches must be >= 1.")
 
@@ -223,11 +239,14 @@ def find_breed_matches(
     dropped: list[ResolvedPreference] = []
 
     candidates = _query_breeds(active)
+    
+    # The compromise loop: Drop the lowest-importance traits until we hit 'min_matches'
     while len(candidates) < min_matches and active:
         lowest_importance = min(pref.importance for pref in active)
+        # Find the first trait that shares this lowest importance score
         drop_index = next(i for i, pref in enumerate(active) if pref.importance == lowest_importance)
         dropped.append(active.pop(drop_index))
-        candidates = _query_breeds(active)
+        candidates = _query_breeds(active) # Re-query with the more relaxed constraints
 
     ranked = _score_candidates(candidates, resolved)
     ranked_breeds = [entry["breed"] for entry in ranked]
@@ -241,11 +260,13 @@ def find_breed_matches(
 
 
 def main() -> None:
+    # Handles command-line execution and output formatting
     parser = argparse.ArgumentParser()
     parser.add_argument("preferences_file", help="Path to a JSON file with preferences.")
     parser.add_argument("--json-full", action="store_true", help="Print full result JSON (for API use).")
     parser.add_argument("--min-matches", type=int, default=5, help="Minimum number of breeds to return (default 5).")
     args = parser.parse_args()
+    
     preferences = load_preferences_from_file(args.preferences_file)
     result = find_breed_matches(preferences, args.min_matches)
 

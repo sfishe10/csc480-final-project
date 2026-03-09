@@ -115,24 +115,6 @@ const QUESTIONS = [
       { label: 'Good with other dogs', value: 'Good_With_Other_Dogs' },
     ],
   },
-  {
-    id: 'protectivity',
-    prompt: 'What is your preferred protectivity level in a dog?',
-    options: [
-      { label: 'Not protective', value: 'Not_Protective' },
-      { label: 'Somewhat protective', value: 'Somewhat_Protective' },
-      { label: 'Very protective', value: 'Very_Protective' },
-    ],
-  },
-  {
-    id: 'barking',
-    prompt: 'What is your preferred barking level in a dog?',
-    options: [
-      { label: 'Barks rarely', value: 'Barks_Rarely' },
-      { label: 'Barks occasionally', value: 'Barks_Occasionally' },
-      { label: 'Barks often', value: 'Barks_Often' },
-    ],
-  },
 ]
 
 function ArrowRightIcon(props) {

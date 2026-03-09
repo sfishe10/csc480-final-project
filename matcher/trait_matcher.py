@@ -186,16 +186,20 @@ def _score_candidates(
     scored: list[dict[str, Any]] = []
     for breed in candidates:
         score = 0
+        total = 0
         matched_traits: list[str] = []
         for pref in resolved_preferences:
+            total += pref.importance
             if breed in trait_to_matching_breeds[pref.predicate_name]:
                 score += pref.importance
                 matched_traits.append(pref.trait)
 
+        fit = score/total
         scored.append(
             {
                 "breed": breed,
                 "score": score,
+                "fit": fit,
                 "matched_traits": matched_traits,
                 "matched_count": len(matched_traits),
                 "description": breed_descriptions.get(breed, ""),

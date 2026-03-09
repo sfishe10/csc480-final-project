@@ -137,8 +137,8 @@ def to_term_name(breed):
     return re.sub(r"[^0-9a-zA-Z_]+", "_", breed).strip("_")
 
 breed_to_term = {breed: to_term_name(breed) for breed in df["breed"].unique()}
-shedding_to_term = {s: (to_term_name(s)) for s in df["shedding_category"].unique()}
-grooming_to_term = {g: (to_term_name(g)) for g in df["grooming_frequency_category"].unique()}
+shedding_to_term = {s: "Sheds_" + (to_term_name(s)) for s in df["shedding_category"].unique()}
+grooming_to_term = {g: "Requires_" + (to_term_name(g)) for g in df["grooming_frequency_category"].unique()}
 energy_to_term = {e: to_term_name(e) for e in df["energy_level_category"].unique()}
 trainability_to_term = {t: to_term_name(t) for t in df["trainability_category"].unique()}
 demeanor_to_term = {d: to_term_name(d) for d in df["demeanor_category"].unique()}
